@@ -1,0 +1,60 @@
+create database Major_Project_db;
+use Major_Project_db;
+
+select * from walmart;
+
+-- Time Series Aggregation for Forecasting
+SELECT
+    -- Function to clean the date format and extract the Year
+    YEAR(STR_TO_DATE(
+        `Order Date`,
+        CASE 
+            WHEN `Order Date` LIKE '%/%/%' THEN '%d/%m/%Y'
+            ELSE '%Y-%m-%d'
+        END
+    )) AS Order_Year,
+    
+    -- Function to clean the date and extract the Month
+    MONTH(STR_TO_DATE(
+        `Order Date`,
+        CASE 
+            WHEN `Order Date` LIKE '%/%/%' THEN '%d/%m/%Y'
+            ELSE '%Y-%m-%d'
+        END
+    )) AS Order_Month,
+    
+    -- Creates a clean 'YYYY-MM' string (e.g., '2017-08') for Power BI's X-axis
+    CONCAT(
+        YEAR(STR_TO_DATE(`Order Date`, CASE WHEN `Order Date` LIKE '%/%/%' THEN '%d/%m/%Y' ELSE '%Y-%m-%d' END)), 
+        '-', 
+        LPAD(MONTH(STR_TO_DATE(`Order Date`, CASE WHEN `Order Date` LIKE '%/%/%' THEN '%d/%m/%Y' ELSE '%Y-%m-%d' END)), 2, '0')
+    ) AS Year_Month_Key,
+
+    SUM(Sales) AS Total_Monthly_Sales
+FROM
+    walmart
+GROUP BY
+    Order_Year,
+    Order_Month,
+    Year_Month_Key
+ORDER BY
+    Order_Year,
+    Order_Month;
+    
+    
+   -- Geographic & Segment Analysis for Regression Features
+    SELECT
+    Region,
+    Segment,
+    Category,
+    SUM(Sales) AS Total_Sales,
+    AVG(Sales) AS Average_Sales_Value,
+    COUNT(DISTINCT `Order ID`) AS Total_Orders 
+FROM
+    walmart
+GROUP BY
+    Region,
+    Segment,
+    Category
+ORDER BY
+    Total_Sales DESC;
